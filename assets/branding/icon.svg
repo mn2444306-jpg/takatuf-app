@@ -1,0 +1,28 @@
+<svg viewBox="0 0 240 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="شعار تكاتف">
+  <defs>
+    <clipPath id="takCircleClip"><circle cx="120" cy="176" r="68"/></clipPath>
+    <linearGradient id="takSeam" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F3A63A"/>
+      <stop offset="1" stop-color="#1E76BC"/>
+    </linearGradient>
+    <g id="takHand">
+      <rect x="-24" y="-58" width="48" height="50" rx="19"/>
+      <rect x="-22" y="-104" width="12" height="46" rx="6" transform="rotate(-10 -16 -58)"/>
+      <rect x="-8" y="-118" width="12" height="60" rx="6" transform="rotate(-3 -2 -58)"/>
+      <rect x="6" y="-118" width="12" height="60" rx="6" transform="rotate(3 12 -58)"/>
+      <rect x="20" y="-104" width="12" height="46" rx="6" transform="rotate(10 26 -58)"/>
+      <rect x="-40" y="-51" width="22" height="13" rx="6.5" transform="rotate(-45 -29 -44)"/>
+    </g>
+  </defs>
+
+  <ellipse cx="120" cy="66" rx="22" ry="16" fill="url(#takSeam)"/>
+  <use href="#takHand" transform="translate(86,146) rotate(36)" fill="#F3A63A"/>
+  <use href="#takHand" transform="translate(154,146) rotate(-36) scale(-1,1)" fill="#1E76BC"/>
+
+  <g clip-path="url(#takCircleClip)">
+    <path d="M120,108 A68,68 0 0,0 120,244 Z" fill="#F3A63A"/>
+    <path d="M120,108 A68,68 0 0,1 120,244 Z" fill="#1E76BC"/>
+    <circle cx="120" cy="150" r="17" fill="#FFFFFF"/>
+    <path d="M58,258 Q58,186 120,184 Q182,186 182,258 Z" fill="#FFFFFF"/>
+  </g>
+</svg>
