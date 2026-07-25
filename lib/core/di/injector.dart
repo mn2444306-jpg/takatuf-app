@@ -9,6 +9,11 @@ import '../../features/beneficiaries/presentation/cubit/elderly_cubit.dart';
 import '../../features/beneficiaries/presentation/cubit/households_cubit.dart';
 import '../../features/beneficiaries/presentation/cubit/married_cubit.dart';
 import '../../features/beneficiaries/presentation/cubit/students_cubit.dart';
+import '../../features/campaigns/data/pdf/campaign_pdf_report_generator.dart';
+import '../../features/campaigns/data/repositories/campaigns_repository_impl.dart';
+import '../../features/campaigns/domain/repositories/campaigns_repository.dart';
+import '../../features/campaigns/presentation/cubit/campaign_wizard_cubit.dart';
+import '../../features/campaigns/presentation/cubit/campaigns_list_cubit.dart';
 import '../../features/residence_places/data/repositories/residence_places_repository_impl.dart';
 import '../../features/residence_places/domain/repositories/residence_places_repository.dart';
 import '../../features/residence_places/presentation/cubit/residence_places_cubit.dart';
@@ -18,6 +23,7 @@ import '../../features/villages/presentation/cubit/villages_cubit.dart';
 import '../database/app_database.dart';
 import '../database/daos/aid_types_dao.dart';
 import '../database/daos/beneficiaries_dao.dart';
+import '../database/daos/campaigns_dao.dart';
 import '../database/daos/residence_places_dao.dart';
 import '../database/daos/villages_dao.dart';
 
@@ -38,6 +44,9 @@ void setupInjector() {
   injector.registerLazySingleton<BeneficiariesDao>(
     () => injector<AppDatabase>().beneficiariesDao,
   );
+  injector.registerLazySingleton<CampaignsDao>(
+    () => injector<AppDatabase>().campaignsDao,
+  );
 
   injector.registerLazySingleton<VillagesRepository>(
     () => VillagesRepositoryImpl(injector()),
@@ -51,6 +60,12 @@ void setupInjector() {
   injector.registerLazySingleton<BeneficiariesRepository>(
     () => BeneficiariesRepositoryImpl(injector()),
   );
+  injector.registerLazySingleton<CampaignsRepository>(
+    () => CampaignsRepositoryImpl(injector()),
+  );
+  injector.registerLazySingleton<CampaignPdfReportGenerator>(
+    CampaignPdfReportGenerator.new,
+  );
 
   injector.registerFactory<VillagesCubit>(() => VillagesCubit(injector()));
   injector.registerFactory<ResidencePlacesCubit>(
@@ -63,4 +78,10 @@ void setupInjector() {
   injector.registerFactory<StudentsCubit>(() => StudentsCubit(injector()));
   injector.registerFactory<ElderlyCubit>(() => ElderlyCubit(injector()));
   injector.registerFactory<MarriedCubit>(() => MarriedCubit(injector()));
+  injector.registerFactory<CampaignsListCubit>(
+    () => CampaignsListCubit(injector()),
+  );
+  injector.registerFactory<CampaignWizardCubit>(
+    () => CampaignWizardCubit(injector()),
+  );
 }

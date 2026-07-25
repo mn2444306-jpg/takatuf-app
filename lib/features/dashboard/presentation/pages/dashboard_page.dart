@@ -23,6 +23,14 @@ class DashboardPage extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           _DashboardCard(
+            icon: Icons.campaign_outlined,
+            iconColor: AppTheme.accentColor,
+            title: 'الحملات',
+            subtitle: 'إنشاء حملات المساعدات وتوزيعها',
+            onTap: () => context.push('/campaigns'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _DashboardCard(
             icon: Icons.holiday_village_outlined,
             iconColor: AppTheme.accentColor,
             title: 'القرى',

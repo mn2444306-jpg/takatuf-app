@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'daos/aid_types_dao.dart';
 import 'daos/beneficiaries_dao.dart';
+import 'daos/campaigns_dao.dart';
 import 'daos/residence_places_dao.dart';
 import 'daos/villages_dao.dart';
 import 'tables/aid_types_table.dart';
@@ -39,7 +40,13 @@ part 'app_database.g.dart';
     CampaignResidencePlaces,
     CampaignBeneficiaries,
   ],
-  daos: [VillagesDao, ResidencePlacesDao, AidTypesDao, BeneficiariesDao],
+  daos: [
+    VillagesDao,
+    ResidencePlacesDao,
+    AidTypesDao,
+    BeneficiariesDao,
+    CampaignsDao,
+  ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
