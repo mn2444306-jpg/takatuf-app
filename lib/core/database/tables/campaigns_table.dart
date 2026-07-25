@@ -8,7 +8,7 @@ class Campaigns extends Table {
   TextColumn get name => text().withLength(min: 1, max: 200)();
   // 'household' | 'student' | 'elderly' | 'married' — راجع BeneficiaryType
   TextColumn get beneficiaryType => text()();
-  IntColumn get aidTypeId => integer().references(AidTypes, #id)();
+  IntColumn get aidTypeId => integer().nullable().references(AidTypes, #id)();
   RealColumn get amountPerBeneficiary => real().nullable()();
   TextColumn get notes => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();

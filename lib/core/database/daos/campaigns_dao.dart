@@ -7,14 +7,17 @@ import '../tables/campaign_beneficiaries_table.dart';
 import '../tables/campaign_residence_places_table.dart';
 import '../tables/campaign_villages_table.dart';
 import '../tables/campaigns_table.dart';
+import '../tables/elderly_table.dart';
+import '../tables/married_table.dart';
 import '../tables/residence_places_table.dart';
+import '../tables/students_table.dart';
 import '../tables/villages_table.dart';
 
 part 'campaigns_dao.g.dart';
 
 typedef CampaignSummary = ({
   Campaign campaign,
-  AidType aidType,
+  AidType? aidType,
   int total,
   int received,
 });
@@ -29,6 +32,9 @@ typedef CampaignSummary = ({
     AidTypes,
     Villages,
     ResidencePlaces,
+    Students,
+    Elderly,
+    Married,
   ],
 )
 class CampaignsDao extends DatabaseAccessor<AppDatabase>
@@ -41,7 +47,7 @@ class CampaignsDao extends DatabaseAccessor<AppDatabase>
       filter: campaignBeneficiaries.status.equals('received'),
     );
     final query = select(campaigns).join([
-      innerJoin(aidTypes, aidTypes.id.equalsExp(campaigns.aidTypeId)),
+      leftOuterJoin(aidTypes, aidTypes.id.equalsExp(campaigns.aidTypeId)),
       leftOuterJoin(
         campaignBeneficiaries,
         campaignBeneficiaries.campaignId.equalsExp(campaigns.id),
@@ -57,7 +63,7 @@ class CampaignsDao extends DatabaseAccessor<AppDatabase>
               .map(
                 (row) => (
                   campaign: row.readTable(campaigns),
-                  aidType: row.readTable(aidTypes),
+                  aidType: row.readTableOrNull(aidTypes),
                   total: row.read(totalCount) ?? 0,
                   received: row.read(receivedCount) ?? 0,
                 ),
@@ -66,13 +72,13 @@ class CampaignsDao extends DatabaseAccessor<AppDatabase>
         );
   }
 
-  Stream<(Campaign, AidType)> watchCampaignWithAidType(int campaignId) {
+  Stream<(Campaign, AidType?)> watchCampaignWithAidType(int campaignId) {
     final query = select(campaigns).join([
-      innerJoin(aidTypes, aidTypes.id.equalsExp(campaigns.aidTypeId)),
+      leftOuterJoin(aidTypes, aidTypes.id.equalsExp(campaigns.aidTypeId)),
     ])
       ..where(campaigns.id.equals(campaignId));
     return query.watchSingle().map(
-          (row) => (row.readTable(campaigns), row.readTable(aidTypes)),
+          (row) => (row.readTable(campaigns), row.readTableOrNull(aidTypes)),
         );
   }
 
@@ -144,6 +150,34 @@ class CampaignsDao extends DatabaseAccessor<AppDatabase>
     return count;
   }
 
+  /// يُستدعى فقط لحملات الطلاب/الشيبان/المتزوجين (بدون نوع مساعدة محدَّد) —
+  /// يجلب "المبلغ المقرر" الفردي لكل مستفيد من جدوله الفرعي، بدل مبلغ موحّد
+  /// للحملة كما في حالة البيوت.
+  Future<Map<int, double?>> _fetchIndividualAmounts(
+    String beneficiaryType,
+    List<int> beneficiaryIds,
+  ) async {
+    switch (beneficiaryType) {
+      case 'student':
+        final rows = await (select(
+          students,
+        )..where((t) => t.beneficiaryId.isIn(beneficiaryIds))).get();
+        return {for (final r in rows) r.beneficiaryId: r.allocatedAmount};
+      case 'elderly':
+        final rows = await (select(
+          elderly,
+        )..where((t) => t.beneficiaryId.isIn(beneficiaryIds))).get();
+        return {for (final r in rows) r.beneficiaryId: r.allocatedAmount};
+      case 'married':
+        final rows = await (select(
+          married,
+        )..where((t) => t.beneficiaryId.isIn(beneficiaryIds))).get();
+        return {for (final r in rows) r.beneficiaryId: r.allocatedAmount};
+      default:
+        return {};
+    }
+  }
+
   Future<int> createCampaign({
     required CampaignsCompanion campaign,
     required List<int> villageIds,
@@ -191,13 +225,25 @@ class CampaignsDao extends DatabaseAccessor<AppDatabase>
                 .get();
 
       if (matchingIds.isNotEmpty) {
+        final isHousehold = createdCampaign.beneficiaryType == 'household';
+        final individualAmounts = isHousehold
+            ? const <int, double?>{}
+            : await _fetchIndividualAmounts(
+                createdCampaign.beneficiaryType,
+                matchingIds,
+              );
+
         await batch((batch) {
           batch.insertAll(campaignBeneficiaries, [
             for (final beneficiaryId in matchingIds)
               CampaignBeneficiariesCompanion.insert(
                 campaignId: campaignId,
                 beneficiaryId: beneficiaryId,
-                amount: Value(createdCampaign.amountPerBeneficiary),
+                amount: Value(
+                  isHousehold
+                      ? createdCampaign.amountPerBeneficiary
+                      : individualAmounts[beneficiaryId],
+                ),
               ),
           ]);
         });

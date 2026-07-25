@@ -4,7 +4,7 @@ import '../../../../core/database/daos/campaigns_dao.dart';
 abstract class CampaignsRepository {
   Stream<List<CampaignSummary>> watchAllSummaries();
 
-  Stream<(Campaign, AidType)> watchCampaignWithAidType(int campaignId);
+  Stream<(Campaign, AidType?)> watchCampaignWithAidType(int campaignId);
 
   Future<List<Village>> getCampaignVillages(int campaignId);
 
@@ -23,7 +23,7 @@ abstract class CampaignsRepository {
   Future<int> createCampaign({
     required String name,
     required String beneficiaryType,
-    required int aidTypeId,
+    int? aidTypeId,
     double? amountPerBeneficiary,
     String? notes,
     required List<int> villageIds,

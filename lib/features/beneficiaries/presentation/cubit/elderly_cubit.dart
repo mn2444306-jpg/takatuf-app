@@ -40,7 +40,7 @@ class ElderlyCubit extends Cubit<ElderlyState> {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required int age,
+    required double allocatedAmount,
   }) =>
       _repository.addElderly(
         primaryName: primaryName,
@@ -48,7 +48,7 @@ class ElderlyCubit extends Cubit<ElderlyState> {
         residencePlaceId: residencePlaceId,
         phone: phone,
         notes: notes,
-        age: age,
+        allocatedAmount: allocatedAmount,
       );
 
   Future<void> update(Beneficiary base, ElderlyBeneficiary details) =>

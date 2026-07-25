@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:printing/printing.dart';
 
 import '../../../../core/constants/beneficiary_type.dart';
+import '../../../../core/database/app_database.dart';
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/empty_state.dart';
@@ -27,13 +28,45 @@ class CampaignDetailsPage extends StatelessWidget {
   }
 }
 
-class _CampaignDetailsView extends StatelessWidget {
+class _CampaignDetailsView extends StatefulWidget {
   const _CampaignDetailsView();
+
+  @override
+  State<_CampaignDetailsView> createState() => _CampaignDetailsViewState();
+}
+
+class _CampaignDetailsViewState extends State<_CampaignDetailsView> {
+  bool _isSelectionMode = false;
+  final Set<int> _selectedIds = {};
+
+  void _toggleSelectionMode() {
+    setState(() {
+      _isSelectionMode = !_isSelectionMode;
+      _selectedIds.clear();
+    });
+  }
+
+  void _toggleSelected(int campaignBeneficiaryId) {
+    setState(() {
+      if (!_selectedIds.remove(campaignBeneficiaryId)) {
+        _selectedIds.add(campaignBeneficiaryId);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تفاصيل الحملة')),
+      appBar: AppBar(
+        title: const Text('تفاصيل الحملة'),
+        actions: [
+          IconButton(
+            tooltip: _isSelectionMode ? 'إلغاء التحديد' : 'تحديد مستفيدين للتصدير',
+            icon: Icon(_isSelectionMode ? Icons.close : Icons.checklist),
+            onPressed: _toggleSelectionMode,
+          ),
+        ],
+      ),
       body: BlocBuilder<CampaignDetailsCubit, CampaignDetailsState>(
         builder: (context, state) {
           if (state.isLoading || state.campaign == null) {
@@ -42,6 +75,21 @@ class _CampaignDetailsView extends StatelessWidget {
           return Column(
             children: [
               _CampaignHeaderCard(state: state),
+              if (_isSelectionMode)
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'وضع التحديد: اختر المستفيدين المطلوب تصديرهم لموزّع معيّن',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
               Expanded(
                 child: state.rows.isEmpty
                     ? const EmptyState(
@@ -70,6 +118,15 @@ class _CampaignDetailsView extends StatelessWidget {
                             subtitle: subtitleParts.isEmpty
                                 ? null
                                 : Text(subtitleParts.join(' • ')),
+                            secondary: _isSelectionMode
+                                ? Checkbox(
+                                    value: _selectedIds.contains(
+                                      campaignBeneficiary.id,
+                                    ),
+                                    onChanged: (_) =>
+                                        _toggleSelected(campaignBeneficiary.id),
+                                  )
+                                : null,
                             onChanged: (_) => context
                                 .read<CampaignDetailsCubit>()
                                 .toggleReceived(campaignBeneficiary),
@@ -85,8 +142,24 @@ class _CampaignDetailsView extends StatelessWidget {
           BlocBuilder<CampaignDetailsCubit, CampaignDetailsState>(
             builder: (context, state) {
               if (state.campaign == null) return const SizedBox.shrink();
+              if (_isSelectionMode) {
+                return FloatingActionButton.extended(
+                  onPressed: _selectedIds.isEmpty
+                      ? null
+                      : () => _exportPdf(
+                          context,
+                          state,
+                          rows: state.rows
+                              .where((r) => _selectedIds.contains(r.$1.id))
+                              .toList(),
+                        ),
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  label: Text('تصدير المحدَّدين (${_selectedIds.length})'),
+                );
+              }
               return FloatingActionButton.extended(
-                onPressed: () => _exportPdf(context, state),
+                onPressed: () =>
+                    _exportPdf(context, state, rows: state.rows),
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 label: const Text('تصدير PDF'),
               );
@@ -97,16 +170,23 @@ class _CampaignDetailsView extends StatelessWidget {
 
   Future<void> _exportPdf(
     BuildContext context,
-    CampaignDetailsState state,
-  ) async {
+    CampaignDetailsState state, {
+    required List<(CampaignBeneficiary, Beneficiary)> rows,
+  }) async {
     final bytes = await injector<CampaignPdfReportGenerator>().generate(
       campaign: state.campaign!,
-      aidType: state.aidType!,
+      aidType: state.aidType,
       villages: state.villages,
       residencePlaces: state.residencePlaces,
-      rows: state.rows,
+      rows: rows,
     );
     await Printing.layoutPdf(onLayout: (format) async => bytes);
+    if (_isSelectionMode && mounted) {
+      setState(() {
+        _isSelectionMode = false;
+        _selectedIds.clear();
+      });
+    }
   }
 }
 
@@ -118,7 +198,7 @@ class _CampaignHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final campaign = state.campaign!;
-    final aidType = state.aidType!;
+    final aidTypeLabel = state.aidType?.name ?? 'مساعدة مالية';
     final type = BeneficiaryType.fromValue(campaign.beneficiaryType);
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -130,7 +210,7 @@ class _CampaignHeaderCard extends StatelessWidget {
             children: [
               Text(campaign.name, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: AppSpacing.xs),
-              Text('${type.arabicLabel} • ${aidType.name}'),
+              Text('${type.arabicLabel} • $aidTypeLabel'),
               if (state.villages.isNotEmpty)
                 Text('القرى: ${state.villages.map((v) => v.name).join('، ')}'),
               if (state.residencePlaces.isNotEmpty)

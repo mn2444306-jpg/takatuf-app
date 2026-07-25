@@ -40,7 +40,7 @@ class MarriedCubit extends Cubit<MarriedState> {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required DateTime marriageDate,
+    required double allocatedAmount,
   }) =>
       _repository.addMarried(
         primaryName: primaryName,
@@ -48,7 +48,7 @@ class MarriedCubit extends Cubit<MarriedState> {
         residencePlaceId: residencePlaceId,
         phone: phone,
         notes: notes,
-        marriageDate: marriageDate,
+        allocatedAmount: allocatedAmount,
       );
 
   Future<void> update(Beneficiary base, MarriedBeneficiary details) =>

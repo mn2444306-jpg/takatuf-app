@@ -6,6 +6,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/repositories/campaigns_repository.dart';
 
+/// علامة داخلية لتمييز "لم يُمرَّر" عن "مُرِّر null صراحةً" في [CampaignDetailsState.copyWith]
+/// — ضروري لأن aidType قد يكون null فعلياً (حملات الطلاب/الشيبان/المتزوجين).
+class _Unset {
+  const _Unset();
+}
+
+const _unset = _Unset();
+
 class CampaignDetailsState extends Equatable {
   const CampaignDetailsState({
     this.campaign,
@@ -29,14 +37,14 @@ class CampaignDetailsState extends Equatable {
 
   CampaignDetailsState copyWith({
     Campaign? campaign,
-    AidType? aidType,
+    Object? aidType = _unset,
     List<Village>? villages,
     List<ResidencePlace>? residencePlaces,
     List<(CampaignBeneficiary, Beneficiary)>? rows,
     bool? isLoading,
   }) => CampaignDetailsState(
     campaign: campaign ?? this.campaign,
-    aidType: aidType ?? this.aidType,
+    aidType: identical(aidType, _unset) ? this.aidType : aidType as AidType?,
     villages: villages ?? this.villages,
     residencePlaces: residencePlaces ?? this.residencePlaces,
     rows: rows ?? this.rows,
@@ -78,7 +86,7 @@ class CampaignDetailsCubit extends Cubit<CampaignDetailsState> {
 
   final CampaignsRepository _repository;
   final int campaignId;
-  late final StreamSubscription<(Campaign, AidType)> _campaignSubscription;
+  late final StreamSubscription<(Campaign, AidType?)> _campaignSubscription;
   late final StreamSubscription<List<(CampaignBeneficiary, Beneficiary)>>
   _beneficiariesSubscription;
 

@@ -71,9 +71,8 @@ class BeneficiariesRepositoryImpl implements BeneficiariesRepository {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required String schoolName,
-    required String educationStage,
-    required String classGrade,
+    String? universityName,
+    required double allocatedAmount,
   }) =>
       _dao.insertStudent(
         _base(
@@ -86,9 +85,8 @@ class BeneficiariesRepositoryImpl implements BeneficiariesRepository {
         ),
         (beneficiaryId) => StudentsCompanion.insert(
           beneficiaryId: Value(beneficiaryId),
-          schoolName: schoolName,
-          educationStage: educationStage,
-          classGrade: classGrade,
+          universityName: Value(universityName),
+          allocatedAmount: Value(allocatedAmount),
         ),
       );
 
@@ -107,7 +105,7 @@ class BeneficiariesRepositoryImpl implements BeneficiariesRepository {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required int age,
+    required double allocatedAmount,
   }) =>
       _dao.insertElderly(
         _base(
@@ -120,7 +118,7 @@ class BeneficiariesRepositoryImpl implements BeneficiariesRepository {
         ),
         (beneficiaryId) => ElderlyCompanion.insert(
           beneficiaryId: Value(beneficiaryId),
-          age: age,
+          allocatedAmount: Value(allocatedAmount),
         ),
       );
 
@@ -139,7 +137,7 @@ class BeneficiariesRepositoryImpl implements BeneficiariesRepository {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required DateTime marriageDate,
+    required double allocatedAmount,
   }) =>
       _dao.insertMarried(
         _base(
@@ -152,7 +150,7 @@ class BeneficiariesRepositoryImpl implements BeneficiariesRepository {
         ),
         (beneficiaryId) => MarriedCompanion.insert(
           beneficiaryId: Value(beneficiaryId),
-          marriageDate: marriageDate,
+          allocatedAmount: Value(allocatedAmount),
         ),
       );
 

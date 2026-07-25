@@ -14,7 +14,7 @@ class CampaignsRepositoryImpl implements CampaignsRepository {
       _dao.watchAllSummaries();
 
   @override
-  Stream<(Campaign, AidType)> watchCampaignWithAidType(int campaignId) =>
+  Stream<(Campaign, AidType?)> watchCampaignWithAidType(int campaignId) =>
       _dao.watchCampaignWithAidType(campaignId);
 
   @override
@@ -45,7 +45,7 @@ class CampaignsRepositoryImpl implements CampaignsRepository {
   Future<int> createCampaign({
     required String name,
     required String beneficiaryType,
-    required int aidTypeId,
+    int? aidTypeId,
     double? amountPerBeneficiary,
     String? notes,
     required List<int> villageIds,
@@ -54,7 +54,7 @@ class CampaignsRepositoryImpl implements CampaignsRepository {
     campaign: CampaignsCompanion.insert(
       name: name,
       beneficiaryType: beneficiaryType,
-      aidTypeId: aidTypeId,
+      aidTypeId: Value(aidTypeId),
       amountPerBeneficiary: Value(amountPerBeneficiary),
       notes: Value(notes),
     ),

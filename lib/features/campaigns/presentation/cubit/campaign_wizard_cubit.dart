@@ -46,13 +46,17 @@ class CampaignWizardState extends Equatable {
   final int? createdCampaignId;
   final String? errorMessage;
 
+  /// حملات الطلاب/الشيبان/المتزوجين تُعتبر مساعدة مالية تلقائياً بحسب
+  /// "المبلغ المقرر" الفردي لكل مستفيد — لا حاجة لاختيار نوع مساعدة لها.
+  bool get requiresAidTypeSelection => beneficiaryType == BeneficiaryType.household;
+
   bool get canContinue => switch (step) {
     0 => beneficiaryType != null,
     1 => selectedVillageIds.isNotEmpty,
     2 => selectedResidencePlaceIds.isNotEmpty,
-    3 =>
-      aidTypeId != null &&
-          (!requiresAmount || (amountPerBeneficiary ?? 0) > 0),
+    3 => !requiresAidTypeSelection ||
+        (aidTypeId != null &&
+            (!requiresAmount || (amountPerBeneficiary ?? 0) > 0)),
     4 => name.trim().isNotEmpty,
     _ => false,
   };
@@ -206,8 +210,7 @@ class CampaignWizardCubit extends Cubit<CampaignWizardState> {
 
   Future<void> submit() async {
     final type = state.beneficiaryType;
-    final aidTypeId = state.aidTypeId;
-    if (type == null || aidTypeId == null || !state.canContinue) return;
+    if (type == null || !state.canContinue) return;
 
     emit(state.copyWith(isSaving: true, clearError: true));
     try {
@@ -215,8 +218,8 @@ class CampaignWizardCubit extends Cubit<CampaignWizardState> {
       final id = await _repository.createCampaign(
         name: state.name.trim(),
         beneficiaryType: type.name,
-        aidTypeId: aidTypeId,
-        amountPerBeneficiary: state.requiresAmount
+        aidTypeId: state.requiresAidTypeSelection ? state.aidTypeId : null,
+        amountPerBeneficiary: state.requiresAidTypeSelection && state.requiresAmount
             ? state.amountPerBeneficiary
             : null,
         notes: (notes == null || notes.isEmpty) ? null : notes,

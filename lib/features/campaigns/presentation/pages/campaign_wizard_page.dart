@@ -369,6 +369,53 @@ class _AidTypeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<CampaignWizardCubit, CampaignWizardState>(
+      buildWhen: (previous, current) =>
+          previous.requiresAidTypeSelection != current.requiresAidTypeSelection,
+      builder: (context, wizardTypeState) {
+        if (!wizardTypeState.requiresAidTypeSelection) {
+          return const _AutomaticFinancialAidNotice();
+        }
+        return const _AidTypeSelector();
+      },
+    );
+  }
+}
+
+class _AutomaticFinancialAidNotice extends StatelessWidget {
+  const _AutomaticFinancialAidNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      color: colorScheme.primaryContainer.withValues(alpha: .5),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.info_outline, color: colorScheme.primary),
+            const SizedBox(width: AppSpacing.sm),
+            const Expanded(
+              child: Text(
+                'ستُعتبر هذه الحملة مساعدة مالية تلقائياً. المبلغ لكل '
+                'مستفيد يُؤخذ من "المبلغ المقرر" المسجَّل له مسبقاً، ولا '
+                'حاجة لاختيار نوع مساعدة.',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AidTypeSelector extends StatelessWidget {
+  const _AidTypeSelector();
+
+  @override
+  Widget build(BuildContext context) {
     return StreamBuilder<List<AidType>>(
       stream: injector<AidTypesRepository>().watchAll(),
       builder: (context, snapshot) {

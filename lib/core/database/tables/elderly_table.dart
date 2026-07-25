@@ -6,7 +6,7 @@ import 'beneficiaries_table.dart';
 class Elderly extends Table {
   IntColumn get beneficiaryId => integer()
       .references(Beneficiaries, #id, onDelete: KeyAction.cascade)();
-  IntColumn get age => integer()();
+  RealColumn get allocatedAmount => real().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {beneficiaryId};

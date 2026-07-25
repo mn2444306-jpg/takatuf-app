@@ -19,8 +19,11 @@ class _ElderlyFormSheetState extends State<ElderlyFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _nameController =
       TextEditingController(text: widget.entry?.$1.primaryName ?? '');
-  late final _ageController =
-      TextEditingController(text: widget.entry?.$2.age.toString() ?? '');
+  late final _amountController = TextEditingController(
+    text: widget.entry == null || widget.entry!.$2.allocatedAmount == 0
+        ? ''
+        : widget.entry!.$2.allocatedAmount.toStringAsFixed(0),
+  );
   late final _phoneController =
       TextEditingController(text: widget.entry?.$1.phone ?? '');
   late final _notesController =
@@ -39,7 +42,7 @@ class _ElderlyFormSheetState extends State<ElderlyFormSheet> {
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
+    _amountController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -76,12 +79,14 @@ class _ElderlyFormSheetState extends State<ElderlyFormSheet> {
               ),
               const SizedBox(height: AppSpacing.sm),
               TextFormField(
-                controller: _ageController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'العمر'),
+                controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(labelText: 'المبلغ المقرر'),
                 validator: (v) {
-                  final n = int.tryParse(v ?? '');
-                  return (n == null || n < 1) ? 'أدخل عمراً صحيحاً' : null;
+                  final n = double.tryParse(v ?? '');
+                  return (n == null || n <= 0) ? 'أدخل مبلغاً صحيحاً' : null;
                 },
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -131,7 +136,7 @@ class _ElderlyFormSheetState extends State<ElderlyFormSheet> {
     }
 
     final primaryName = _nameController.text.trim();
-    final age = int.parse(_ageController.text.trim());
+    final amount = double.parse(_amountController.text.trim());
     final phone = _phoneController.text.trim();
     final notes = _notesController.text.trim();
 
@@ -143,7 +148,7 @@ class _ElderlyFormSheetState extends State<ElderlyFormSheet> {
         residencePlaceId: _residencePlaceId!,
         phone: phone.isEmpty ? null : phone,
         notes: notes.isEmpty ? null : notes,
-        age: age,
+        allocatedAmount: amount,
       );
     } else {
       final updatedBase = entry.$1.copyWith(
@@ -154,7 +159,7 @@ class _ElderlyFormSheetState extends State<ElderlyFormSheet> {
         notes: Value(notes.isEmpty ? null : notes),
         updatedAt: DateTime.now(),
       );
-      final updatedDetails = entry.$2.copyWith(age: age);
+      final updatedDetails = entry.$2.copyWith(allocatedAmount: amount);
       await widget.cubit.update(updatedBase, updatedDetails);
     }
     if (mounted) Navigator.pop(context);

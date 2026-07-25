@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import '../../../../core/di/injector.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -340,7 +339,9 @@ class _StudentsTabState extends State<_StudentsTab> {
                     itemBuilder: (context, index) {
                       final entry = items[index];
                       final subtitleParts = <String>[
-                        '${entry.$2.schoolName} • ${entry.$2.classGrade}',
+                        if ((entry.$2.universityName ?? '').isNotEmpty)
+                          entry.$2.universityName!,
+                        'المبلغ المقرر: ${entry.$2.allocatedAmount.toStringAsFixed(0)}',
                         if ((entry.$1.phone ?? '').isNotEmpty) entry.$1.phone!,
                       ];
                       return ListTile(
@@ -476,7 +477,7 @@ class _ElderlyTabState extends State<_ElderlyTab> {
                     itemBuilder: (context, index) {
                       final entry = items[index];
                       final subtitleParts = <String>[
-                        'العمر: ${entry.$2.age}',
+                        'المبلغ المقرر: ${entry.$2.allocatedAmount.toStringAsFixed(0)}',
                         if ((entry.$1.phone ?? '').isNotEmpty) entry.$1.phone!,
                       ];
                       return ListTile(
@@ -612,7 +613,7 @@ class _MarriedTabState extends State<_MarriedTab> {
                     itemBuilder: (context, index) {
                       final entry = items[index];
                       final subtitleParts = <String>[
-                        DateFormat('yyyy/MM/dd').format(entry.$2.marriageDate),
+                        'المبلغ المقرر: ${entry.$2.allocatedAmount.toStringAsFixed(0)}',
                         if ((entry.$1.phone ?? '').isNotEmpty) entry.$1.phone!,
                       ];
                       return ListTile(

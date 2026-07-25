@@ -19,12 +19,13 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _nameController =
       TextEditingController(text: widget.entry?.$1.primaryName ?? '');
-  late final _schoolController =
-      TextEditingController(text: widget.entry?.$2.schoolName ?? '');
-  late final _stageController =
-      TextEditingController(text: widget.entry?.$2.educationStage ?? '');
-  late final _gradeController =
-      TextEditingController(text: widget.entry?.$2.classGrade ?? '');
+  late final _universityController =
+      TextEditingController(text: widget.entry?.$2.universityName ?? '');
+  late final _amountController = TextEditingController(
+    text: widget.entry == null || widget.entry!.$2.allocatedAmount == 0
+        ? ''
+        : widget.entry!.$2.allocatedAmount.toStringAsFixed(0),
+  );
   late final _phoneController =
       TextEditingController(text: widget.entry?.$1.phone ?? '');
   late final _notesController =
@@ -43,9 +44,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
   @override
   void dispose() {
     _nameController.dispose();
-    _schoolController.dispose();
-    _stageController.dispose();
-    _gradeController.dispose();
+    _universityController.dispose();
+    _amountController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
     super.dispose();
@@ -82,27 +82,21 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
               ),
               const SizedBox(height: AppSpacing.sm),
               TextFormField(
-                controller: _schoolController,
-                decoration: const InputDecoration(labelText: 'المدرسة'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'المدرسة مطلوبة' : null,
+                controller: _universityController,
+                decoration:
+                    const InputDecoration(labelText: 'اسم الجامعة (اختياري)'),
               ),
               const SizedBox(height: AppSpacing.sm),
               TextFormField(
-                controller: _stageController,
-                decoration: const InputDecoration(
-                  labelText: 'المرحلة الدراسية',
-                  hintText: 'ابتدائي / إعدادي / ثانوي / جامعي',
+                controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'المرحلة مطلوبة' : null,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextFormField(
-                controller: _gradeController,
-                decoration: const InputDecoration(labelText: 'الصف'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'الصف مطلوب' : null,
+                decoration: const InputDecoration(labelText: 'المبلغ المقرر'),
+                validator: (v) {
+                  final n = double.tryParse(v ?? '');
+                  return (n == null || n <= 0) ? 'أدخل مبلغاً صحيحاً' : null;
+                },
               ),
               const SizedBox(height: AppSpacing.sm),
               VillageDropdownField(
@@ -151,9 +145,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
     }
 
     final primaryName = _nameController.text.trim();
-    final school = _schoolController.text.trim();
-    final stage = _stageController.text.trim();
-    final grade = _gradeController.text.trim();
+    final university = _universityController.text.trim();
+    final amount = double.parse(_amountController.text.trim());
     final phone = _phoneController.text.trim();
     final notes = _notesController.text.trim();
 
@@ -165,9 +158,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
         residencePlaceId: _residencePlaceId!,
         phone: phone.isEmpty ? null : phone,
         notes: notes.isEmpty ? null : notes,
-        schoolName: school,
-        educationStage: stage,
-        classGrade: grade,
+        universityName: university.isEmpty ? null : university,
+        allocatedAmount: amount,
       );
     } else {
       final updatedBase = entry.$1.copyWith(
@@ -179,9 +171,8 @@ class _StudentFormSheetState extends State<StudentFormSheet> {
         updatedAt: DateTime.now(),
       );
       final updatedDetails = entry.$2.copyWith(
-        schoolName: school,
-        educationStage: stage,
-        classGrade: grade,
+        universityName: Value(university.isEmpty ? null : university),
+        allocatedAmount: amount,
       );
       await widget.cubit.update(updatedBase, updatedDetails);
     }

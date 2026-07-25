@@ -54,7 +54,7 @@ class _CampaignsListView extends StatelessWidget {
                 ),
                 title: Text(summary.campaign.name),
                 subtitle: Text(
-                  '${type.arabicLabel} • ${summary.aidType.name} • '
+                  '${type.arabicLabel} • ${summary.aidType?.name ?? 'مساعدة مالية'} • '
                   'تم الاستلام ${summary.received} من ${summary.total}',
                 ),
                 trailing: const Icon(Icons.chevron_left),

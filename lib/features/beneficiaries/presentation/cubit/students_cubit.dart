@@ -40,9 +40,8 @@ class StudentsCubit extends Cubit<StudentsState> {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required String schoolName,
-    required String educationStage,
-    required String classGrade,
+    String? universityName,
+    required double allocatedAmount,
   }) =>
       _repository.addStudent(
         primaryName: primaryName,
@@ -50,9 +49,8 @@ class StudentsCubit extends Cubit<StudentsState> {
         residencePlaceId: residencePlaceId,
         phone: phone,
         notes: notes,
-        schoolName: schoolName,
-        educationStage: educationStage,
-        classGrade: classGrade,
+        universityName: universityName,
+        allocatedAmount: allocatedAmount,
       );
 
   Future<void> update(Beneficiary base, Student details) =>

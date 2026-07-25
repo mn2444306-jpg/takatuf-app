@@ -1,6 +1,5 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' show DateFormat;
 
 import '../../../../core/theme/app_spacing.dart';
 import '../cubit/married_cubit.dart';
@@ -20,13 +19,17 @@ class _MarriedFormSheetState extends State<MarriedFormSheet> {
   final _formKey = GlobalKey<FormState>();
   late final _nameController =
       TextEditingController(text: widget.entry?.$1.primaryName ?? '');
+  late final _amountController = TextEditingController(
+    text: widget.entry == null || widget.entry!.$2.allocatedAmount == 0
+        ? ''
+        : widget.entry!.$2.allocatedAmount.toStringAsFixed(0),
+  );
   late final _phoneController =
       TextEditingController(text: widget.entry?.$1.phone ?? '');
   late final _notesController =
       TextEditingController(text: widget.entry?.$1.notes ?? '');
   int? _villageId;
   int? _residencePlaceId;
-  DateTime? _marriageDate;
   bool _tappedSubmitWithoutRequired = false;
 
   @override
@@ -34,26 +37,15 @@ class _MarriedFormSheetState extends State<MarriedFormSheet> {
     super.initState();
     _villageId = widget.entry?.$1.villageId;
     _residencePlaceId = widget.entry?.$1.residencePlaceId;
-    _marriageDate = widget.entry?.$2.marriageDate;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _amountController.dispose();
     _phoneController.dispose();
     _notesController.dispose();
     super.dispose();
-  }
-
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _marriageDate ?? now,
-      firstDate: DateTime(now.year - 80),
-      lastDate: now,
-    );
-    if (picked != null) setState(() => _marriageDate = picked);
   }
 
   @override
@@ -86,20 +78,17 @@ class _MarriedFormSheetState extends State<MarriedFormSheet> {
                     (v == null || v.trim().isEmpty) ? 'الاسم مطلوب' : null,
               ),
               const SizedBox(height: AppSpacing.sm),
-              InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: _pickDate,
-                child: InputDecorator(
-                  decoration: const InputDecoration(labelText: 'تاريخ الزواج'),
-                  child: Text(
-                    _marriageDate == null
-                        ? 'اختر التاريخ'
-                        : DateFormat('yyyy/MM/dd').format(_marriageDate!),
-                  ),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
                 ),
+                decoration: const InputDecoration(labelText: 'المبلغ المقرر'),
+                validator: (v) {
+                  final n = double.tryParse(v ?? '');
+                  return (n == null || n <= 0) ? 'أدخل مبلغاً صحيحاً' : null;
+                },
               ),
-              if (_tappedSubmitWithoutRequired && _marriageDate == null)
-                _RequiredHint(text: 'تاريخ الزواج مطلوب'),
               const SizedBox(height: AppSpacing.sm),
               VillageDropdownField(
                 selectedId: _villageId,
@@ -140,15 +129,14 @@ class _MarriedFormSheetState extends State<MarriedFormSheet> {
 
   Future<void> _submit() async {
     final formOk = _formKey.currentState!.validate();
-    final requiredOk = _villageId != null &&
-        _residencePlaceId != null &&
-        _marriageDate != null;
+    final requiredOk = _villageId != null && _residencePlaceId != null;
     if (!formOk || !requiredOk) {
       setState(() => _tappedSubmitWithoutRequired = true);
       return;
     }
 
     final primaryName = _nameController.text.trim();
+    final amount = double.parse(_amountController.text.trim());
     final phone = _phoneController.text.trim();
     final notes = _notesController.text.trim();
 
@@ -160,7 +148,7 @@ class _MarriedFormSheetState extends State<MarriedFormSheet> {
         residencePlaceId: _residencePlaceId!,
         phone: phone.isEmpty ? null : phone,
         notes: notes.isEmpty ? null : notes,
-        marriageDate: _marriageDate!,
+        allocatedAmount: amount,
       );
     } else {
       final updatedBase = entry.$1.copyWith(
@@ -171,7 +159,7 @@ class _MarriedFormSheetState extends State<MarriedFormSheet> {
         notes: Value(notes.isEmpty ? null : notes),
         updatedAt: DateTime.now(),
       );
-      final updatedDetails = entry.$2.copyWith(marriageDate: _marriageDate!);
+      final updatedDetails = entry.$2.copyWith(allocatedAmount: amount);
       await widget.cubit.update(updatedBase, updatedDetails);
     }
     if (mounted) Navigator.pop(context);

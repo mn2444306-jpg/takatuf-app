@@ -26,7 +26,7 @@ class CampaignPdfReportGenerator {
 
   Future<Uint8List> generate({
     required Campaign campaign,
-    required AidType aidType,
+    required AidType? aidType,
     required List<Village> villages,
     required List<ResidencePlace> residencePlaces,
     required List<(CampaignBeneficiary, Beneficiary)> rows,
@@ -35,7 +35,9 @@ class CampaignPdfReportGenerator {
 
     final villageNames = {for (final v in villages) v.id: v.name};
     final placeNames = {for (final p in residencePlaces) p.id: p.name};
-    final showAmount = aidType.requiresAmount;
+    // بلا نوع مساعدة محدَّد = حملة مساعدة مالية تلقائياً (طلاب/شيبان/متزوجون)،
+    // فتُعرض المبالغ دائماً.
+    final showAmount = aidType?.requiresAmount ?? true;
     final receivedCount = rows
         .where((row) => row.$1.status == 'received')
         .length;
@@ -79,7 +81,7 @@ class CampaignPdfReportGenerator {
 
   pw.Widget _buildHeader(
     Campaign campaign,
-    AidType aidType,
+    AidType? aidType,
     List<Village> villages,
     List<ResidencePlace> residencePlaces,
   ) {
@@ -101,7 +103,7 @@ class CampaignPdfReportGenerator {
         ),
         pw.Divider(height: 16),
         _infoRow('نوع المستفيدين', beneficiaryType.arabicLabel),
-        _infoRow('نوع المساعدة', aidType.name),
+        _infoRow('نوع المساعدة', aidType?.name ?? 'مساعدة مالية'),
         if (campaign.amountPerBeneficiary != null)
           _infoRow(
             'المبلغ لكل مستفيد',

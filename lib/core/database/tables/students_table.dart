@@ -6,9 +6,8 @@ import 'beneficiaries_table.dart';
 class Students extends Table {
   IntColumn get beneficiaryId => integer()
       .references(Beneficiaries, #id, onDelete: KeyAction.cascade)();
-  TextColumn get schoolName => text()();
-  TextColumn get educationStage => text()();
-  TextColumn get classGrade => text()();
+  TextColumn get universityName => text().nullable()();
+  RealColumn get allocatedAmount => real().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {beneficiaryId};

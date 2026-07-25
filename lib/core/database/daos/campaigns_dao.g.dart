@@ -15,6 +15,9 @@ mixin _$CampaignsDaoMixin on DatabaseAccessor<AppDatabase> {
       attachedDatabase.campaignVillages;
   $CampaignResidencePlacesTable get campaignResidencePlaces =>
       attachedDatabase.campaignResidencePlaces;
+  $StudentsTable get students => attachedDatabase.students;
+  $ElderlyTable get elderly => attachedDatabase.elderly;
+  $MarriedTable get married => attachedDatabase.married;
   CampaignsDaoManager get managers => CampaignsDaoManager(this);
 }
 
@@ -49,4 +52,10 @@ class CampaignsDaoManager {
         _db.attachedDatabase,
         _db.campaignResidencePlaces,
       );
+  $$StudentsTableTableManager get students =>
+      $$StudentsTableTableManager(_db.attachedDatabase, _db.students);
+  $$ElderlyTableTableManager get elderly =>
+      $$ElderlyTableTableManager(_db.attachedDatabase, _db.elderly);
+  $$MarriedTableTableManager get married =>
+      $$MarriedTableTableManager(_db.attachedDatabase, _db.married);
 }

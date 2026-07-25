@@ -20,9 +20,8 @@ abstract class BeneficiariesRepository {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required String schoolName,
-    required String educationStage,
-    required String classGrade,
+    String? universityName,
+    required double allocatedAmount,
   });
   Future<void> updateStudent(Beneficiary base, Student details);
 
@@ -33,7 +32,7 @@ abstract class BeneficiariesRepository {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required int age,
+    required double allocatedAmount,
   });
   Future<void> updateElderly(Beneficiary base, ElderlyBeneficiary details);
 
@@ -44,7 +43,7 @@ abstract class BeneficiariesRepository {
     required int residencePlaceId,
     String? phone,
     String? notes,
-    required DateTime marriageDate,
+    required double allocatedAmount,
   });
   Future<void> updateMarried(Beneficiary base, MarriedBeneficiary details);
 

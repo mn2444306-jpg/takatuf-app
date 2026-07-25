@@ -1769,45 +1769,34 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
       'REFERENCES beneficiaries (id) ON DELETE CASCADE',
     ),
   );
-  static const VerificationMeta _schoolNameMeta = const VerificationMeta(
-    'schoolName',
+  static const VerificationMeta _universityNameMeta = const VerificationMeta(
+    'universityName',
   );
   @override
-  late final GeneratedColumn<String> schoolName = GeneratedColumn<String>(
-    'school_name',
+  late final GeneratedColumn<String> universityName = GeneratedColumn<String>(
+    'university_name',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
-  static const VerificationMeta _educationStageMeta = const VerificationMeta(
-    'educationStage',
+  static const VerificationMeta _allocatedAmountMeta = const VerificationMeta(
+    'allocatedAmount',
   );
   @override
-  late final GeneratedColumn<String> educationStage = GeneratedColumn<String>(
-    'education_stage',
+  late final GeneratedColumn<double> allocatedAmount = GeneratedColumn<double>(
+    'allocated_amount',
     aliasedName,
     false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _classGradeMeta = const VerificationMeta(
-    'classGrade',
-  );
-  @override
-  late final GeneratedColumn<String> classGrade = GeneratedColumn<String>(
-    'class_grade',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   @override
   List<GeneratedColumn> get $columns => [
     beneficiaryId,
-    schoolName,
-    educationStage,
-    classGrade,
+    universityName,
+    allocatedAmount,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1830,32 +1819,23 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         ),
       );
     }
-    if (data.containsKey('school_name')) {
+    if (data.containsKey('university_name')) {
       context.handle(
-        _schoolNameMeta,
-        schoolName.isAcceptableOrUnknown(data['school_name']!, _schoolNameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_schoolNameMeta);
-    }
-    if (data.containsKey('education_stage')) {
-      context.handle(
-        _educationStageMeta,
-        educationStage.isAcceptableOrUnknown(
-          data['education_stage']!,
-          _educationStageMeta,
+        _universityNameMeta,
+        universityName.isAcceptableOrUnknown(
+          data['university_name']!,
+          _universityNameMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_educationStageMeta);
     }
-    if (data.containsKey('class_grade')) {
+    if (data.containsKey('allocated_amount')) {
       context.handle(
-        _classGradeMeta,
-        classGrade.isAcceptableOrUnknown(data['class_grade']!, _classGradeMeta),
+        _allocatedAmountMeta,
+        allocatedAmount.isAcceptableOrUnknown(
+          data['allocated_amount']!,
+          _allocatedAmountMeta,
+        ),
       );
-    } else if (isInserting) {
-      context.missing(_classGradeMeta);
     }
     return context;
   }
@@ -1870,17 +1850,13 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
         DriftSqlType.int,
         data['${effectivePrefix}beneficiary_id'],
       )!,
-      schoolName: attachedDatabase.typeMapping.read(
+      universityName: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}school_name'],
-      )!,
-      educationStage: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}education_stage'],
-      )!,
-      classGrade: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}class_grade'],
+        data['${effectivePrefix}university_name'],
+      ),
+      allocatedAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}allocated_amount'],
       )!,
     );
   }
@@ -1893,31 +1869,31 @@ class $StudentsTable extends Students with TableInfo<$StudentsTable, Student> {
 
 class Student extends DataClass implements Insertable<Student> {
   final int beneficiaryId;
-  final String schoolName;
-  final String educationStage;
-  final String classGrade;
+  final String? universityName;
+  final double allocatedAmount;
   const Student({
     required this.beneficiaryId,
-    required this.schoolName,
-    required this.educationStage,
-    required this.classGrade,
+    this.universityName,
+    required this.allocatedAmount,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['beneficiary_id'] = Variable<int>(beneficiaryId);
-    map['school_name'] = Variable<String>(schoolName);
-    map['education_stage'] = Variable<String>(educationStage);
-    map['class_grade'] = Variable<String>(classGrade);
+    if (!nullToAbsent || universityName != null) {
+      map['university_name'] = Variable<String>(universityName);
+    }
+    map['allocated_amount'] = Variable<double>(allocatedAmount);
     return map;
   }
 
   StudentsCompanion toCompanion(bool nullToAbsent) {
     return StudentsCompanion(
       beneficiaryId: Value(beneficiaryId),
-      schoolName: Value(schoolName),
-      educationStage: Value(educationStage),
-      classGrade: Value(classGrade),
+      universityName: universityName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(universityName),
+      allocatedAmount: Value(allocatedAmount),
     );
   }
 
@@ -1928,9 +1904,8 @@ class Student extends DataClass implements Insertable<Student> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Student(
       beneficiaryId: serializer.fromJson<int>(json['beneficiaryId']),
-      schoolName: serializer.fromJson<String>(json['schoolName']),
-      educationStage: serializer.fromJson<String>(json['educationStage']),
-      classGrade: serializer.fromJson<String>(json['classGrade']),
+      universityName: serializer.fromJson<String?>(json['universityName']),
+      allocatedAmount: serializer.fromJson<double>(json['allocatedAmount']),
     );
   }
   @override
@@ -1938,37 +1913,33 @@ class Student extends DataClass implements Insertable<Student> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'beneficiaryId': serializer.toJson<int>(beneficiaryId),
-      'schoolName': serializer.toJson<String>(schoolName),
-      'educationStage': serializer.toJson<String>(educationStage),
-      'classGrade': serializer.toJson<String>(classGrade),
+      'universityName': serializer.toJson<String?>(universityName),
+      'allocatedAmount': serializer.toJson<double>(allocatedAmount),
     };
   }
 
   Student copyWith({
     int? beneficiaryId,
-    String? schoolName,
-    String? educationStage,
-    String? classGrade,
+    Value<String?> universityName = const Value.absent(),
+    double? allocatedAmount,
   }) => Student(
     beneficiaryId: beneficiaryId ?? this.beneficiaryId,
-    schoolName: schoolName ?? this.schoolName,
-    educationStage: educationStage ?? this.educationStage,
-    classGrade: classGrade ?? this.classGrade,
+    universityName: universityName.present
+        ? universityName.value
+        : this.universityName,
+    allocatedAmount: allocatedAmount ?? this.allocatedAmount,
   );
   Student copyWithCompanion(StudentsCompanion data) {
     return Student(
       beneficiaryId: data.beneficiaryId.present
           ? data.beneficiaryId.value
           : this.beneficiaryId,
-      schoolName: data.schoolName.present
-          ? data.schoolName.value
-          : this.schoolName,
-      educationStage: data.educationStage.present
-          ? data.educationStage.value
-          : this.educationStage,
-      classGrade: data.classGrade.present
-          ? data.classGrade.value
-          : this.classGrade,
+      universityName: data.universityName.present
+          ? data.universityName.value
+          : this.universityName,
+      allocatedAmount: data.allocatedAmount.present
+          ? data.allocatedAmount.value
+          : this.allocatedAmount,
     );
   }
 
@@ -1976,70 +1947,59 @@ class Student extends DataClass implements Insertable<Student> {
   String toString() {
     return (StringBuffer('Student(')
           ..write('beneficiaryId: $beneficiaryId, ')
-          ..write('schoolName: $schoolName, ')
-          ..write('educationStage: $educationStage, ')
-          ..write('classGrade: $classGrade')
+          ..write('universityName: $universityName, ')
+          ..write('allocatedAmount: $allocatedAmount')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(beneficiaryId, schoolName, educationStage, classGrade);
+      Object.hash(beneficiaryId, universityName, allocatedAmount);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Student &&
           other.beneficiaryId == this.beneficiaryId &&
-          other.schoolName == this.schoolName &&
-          other.educationStage == this.educationStage &&
-          other.classGrade == this.classGrade);
+          other.universityName == this.universityName &&
+          other.allocatedAmount == this.allocatedAmount);
 }
 
 class StudentsCompanion extends UpdateCompanion<Student> {
   final Value<int> beneficiaryId;
-  final Value<String> schoolName;
-  final Value<String> educationStage;
-  final Value<String> classGrade;
+  final Value<String?> universityName;
+  final Value<double> allocatedAmount;
   const StudentsCompanion({
     this.beneficiaryId = const Value.absent(),
-    this.schoolName = const Value.absent(),
-    this.educationStage = const Value.absent(),
-    this.classGrade = const Value.absent(),
+    this.universityName = const Value.absent(),
+    this.allocatedAmount = const Value.absent(),
   });
   StudentsCompanion.insert({
     this.beneficiaryId = const Value.absent(),
-    required String schoolName,
-    required String educationStage,
-    required String classGrade,
-  }) : schoolName = Value(schoolName),
-       educationStage = Value(educationStage),
-       classGrade = Value(classGrade);
+    this.universityName = const Value.absent(),
+    this.allocatedAmount = const Value.absent(),
+  });
   static Insertable<Student> custom({
     Expression<int>? beneficiaryId,
-    Expression<String>? schoolName,
-    Expression<String>? educationStage,
-    Expression<String>? classGrade,
+    Expression<String>? universityName,
+    Expression<double>? allocatedAmount,
   }) {
     return RawValuesInsertable({
       if (beneficiaryId != null) 'beneficiary_id': beneficiaryId,
-      if (schoolName != null) 'school_name': schoolName,
-      if (educationStage != null) 'education_stage': educationStage,
-      if (classGrade != null) 'class_grade': classGrade,
+      if (universityName != null) 'university_name': universityName,
+      if (allocatedAmount != null) 'allocated_amount': allocatedAmount,
     });
   }
 
   StudentsCompanion copyWith({
     Value<int>? beneficiaryId,
-    Value<String>? schoolName,
-    Value<String>? educationStage,
-    Value<String>? classGrade,
+    Value<String?>? universityName,
+    Value<double>? allocatedAmount,
   }) {
     return StudentsCompanion(
       beneficiaryId: beneficiaryId ?? this.beneficiaryId,
-      schoolName: schoolName ?? this.schoolName,
-      educationStage: educationStage ?? this.educationStage,
-      classGrade: classGrade ?? this.classGrade,
+      universityName: universityName ?? this.universityName,
+      allocatedAmount: allocatedAmount ?? this.allocatedAmount,
     );
   }
 
@@ -2049,14 +2009,11 @@ class StudentsCompanion extends UpdateCompanion<Student> {
     if (beneficiaryId.present) {
       map['beneficiary_id'] = Variable<int>(beneficiaryId.value);
     }
-    if (schoolName.present) {
-      map['school_name'] = Variable<String>(schoolName.value);
+    if (universityName.present) {
+      map['university_name'] = Variable<String>(universityName.value);
     }
-    if (educationStage.present) {
-      map['education_stage'] = Variable<String>(educationStage.value);
-    }
-    if (classGrade.present) {
-      map['class_grade'] = Variable<String>(classGrade.value);
+    if (allocatedAmount.present) {
+      map['allocated_amount'] = Variable<double>(allocatedAmount.value);
     }
     return map;
   }
@@ -2065,9 +2022,8 @@ class StudentsCompanion extends UpdateCompanion<Student> {
   String toString() {
     return (StringBuffer('StudentsCompanion(')
           ..write('beneficiaryId: $beneficiaryId, ')
-          ..write('schoolName: $schoolName, ')
-          ..write('educationStage: $educationStage, ')
-          ..write('classGrade: $classGrade')
+          ..write('universityName: $universityName, ')
+          ..write('allocatedAmount: $allocatedAmount')
           ..write(')'))
         .toString();
   }
@@ -2093,17 +2049,20 @@ class $ElderlyTable extends Elderly
       'REFERENCES beneficiaries (id) ON DELETE CASCADE',
     ),
   );
-  static const VerificationMeta _ageMeta = const VerificationMeta('age');
-  @override
-  late final GeneratedColumn<int> age = GeneratedColumn<int>(
-    'age',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
+  static const VerificationMeta _allocatedAmountMeta = const VerificationMeta(
+    'allocatedAmount',
   );
   @override
-  List<GeneratedColumn> get $columns => [beneficiaryId, age];
+  late final GeneratedColumn<double> allocatedAmount = GeneratedColumn<double>(
+    'allocated_amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [beneficiaryId, allocatedAmount];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2125,13 +2084,14 @@ class $ElderlyTable extends Elderly
         ),
       );
     }
-    if (data.containsKey('age')) {
+    if (data.containsKey('allocated_amount')) {
       context.handle(
-        _ageMeta,
-        age.isAcceptableOrUnknown(data['age']!, _ageMeta),
+        _allocatedAmountMeta,
+        allocatedAmount.isAcceptableOrUnknown(
+          data['allocated_amount']!,
+          _allocatedAmountMeta,
+        ),
       );
-    } else if (isInserting) {
-      context.missing(_ageMeta);
     }
     return context;
   }
@@ -2146,9 +2106,9 @@ class $ElderlyTable extends Elderly
         DriftSqlType.int,
         data['${effectivePrefix}beneficiary_id'],
       )!,
-      age: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}age'],
+      allocatedAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}allocated_amount'],
       )!,
     );
   }
@@ -2162,20 +2122,23 @@ class $ElderlyTable extends Elderly
 class ElderlyBeneficiary extends DataClass
     implements Insertable<ElderlyBeneficiary> {
   final int beneficiaryId;
-  final int age;
-  const ElderlyBeneficiary({required this.beneficiaryId, required this.age});
+  final double allocatedAmount;
+  const ElderlyBeneficiary({
+    required this.beneficiaryId,
+    required this.allocatedAmount,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['beneficiary_id'] = Variable<int>(beneficiaryId);
-    map['age'] = Variable<int>(age);
+    map['allocated_amount'] = Variable<double>(allocatedAmount);
     return map;
   }
 
   ElderlyCompanion toCompanion(bool nullToAbsent) {
     return ElderlyCompanion(
       beneficiaryId: Value(beneficiaryId),
-      age: Value(age),
+      allocatedAmount: Value(allocatedAmount),
     );
   }
 
@@ -2186,7 +2149,7 @@ class ElderlyBeneficiary extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ElderlyBeneficiary(
       beneficiaryId: serializer.fromJson<int>(json['beneficiaryId']),
-      age: serializer.fromJson<int>(json['age']),
+      allocatedAmount: serializer.fromJson<double>(json['allocatedAmount']),
     );
   }
   @override
@@ -2194,21 +2157,23 @@ class ElderlyBeneficiary extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'beneficiaryId': serializer.toJson<int>(beneficiaryId),
-      'age': serializer.toJson<int>(age),
+      'allocatedAmount': serializer.toJson<double>(allocatedAmount),
     };
   }
 
-  ElderlyBeneficiary copyWith({int? beneficiaryId, int? age}) =>
+  ElderlyBeneficiary copyWith({int? beneficiaryId, double? allocatedAmount}) =>
       ElderlyBeneficiary(
         beneficiaryId: beneficiaryId ?? this.beneficiaryId,
-        age: age ?? this.age,
+        allocatedAmount: allocatedAmount ?? this.allocatedAmount,
       );
   ElderlyBeneficiary copyWithCompanion(ElderlyCompanion data) {
     return ElderlyBeneficiary(
       beneficiaryId: data.beneficiaryId.present
           ? data.beneficiaryId.value
           : this.beneficiaryId,
-      age: data.age.present ? data.age.value : this.age,
+      allocatedAmount: data.allocatedAmount.present
+          ? data.allocatedAmount.value
+          : this.allocatedAmount,
     );
   }
 
@@ -2216,46 +2181,49 @@ class ElderlyBeneficiary extends DataClass
   String toString() {
     return (StringBuffer('ElderlyBeneficiary(')
           ..write('beneficiaryId: $beneficiaryId, ')
-          ..write('age: $age')
+          ..write('allocatedAmount: $allocatedAmount')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(beneficiaryId, age);
+  int get hashCode => Object.hash(beneficiaryId, allocatedAmount);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ElderlyBeneficiary &&
           other.beneficiaryId == this.beneficiaryId &&
-          other.age == this.age);
+          other.allocatedAmount == this.allocatedAmount);
 }
 
 class ElderlyCompanion extends UpdateCompanion<ElderlyBeneficiary> {
   final Value<int> beneficiaryId;
-  final Value<int> age;
+  final Value<double> allocatedAmount;
   const ElderlyCompanion({
     this.beneficiaryId = const Value.absent(),
-    this.age = const Value.absent(),
+    this.allocatedAmount = const Value.absent(),
   });
   ElderlyCompanion.insert({
     this.beneficiaryId = const Value.absent(),
-    required int age,
-  }) : age = Value(age);
+    this.allocatedAmount = const Value.absent(),
+  });
   static Insertable<ElderlyBeneficiary> custom({
     Expression<int>? beneficiaryId,
-    Expression<int>? age,
+    Expression<double>? allocatedAmount,
   }) {
     return RawValuesInsertable({
       if (beneficiaryId != null) 'beneficiary_id': beneficiaryId,
-      if (age != null) 'age': age,
+      if (allocatedAmount != null) 'allocated_amount': allocatedAmount,
     });
   }
 
-  ElderlyCompanion copyWith({Value<int>? beneficiaryId, Value<int>? age}) {
+  ElderlyCompanion copyWith({
+    Value<int>? beneficiaryId,
+    Value<double>? allocatedAmount,
+  }) {
     return ElderlyCompanion(
       beneficiaryId: beneficiaryId ?? this.beneficiaryId,
-      age: age ?? this.age,
+      allocatedAmount: allocatedAmount ?? this.allocatedAmount,
     );
   }
 
@@ -2265,8 +2233,8 @@ class ElderlyCompanion extends UpdateCompanion<ElderlyBeneficiary> {
     if (beneficiaryId.present) {
       map['beneficiary_id'] = Variable<int>(beneficiaryId.value);
     }
-    if (age.present) {
-      map['age'] = Variable<int>(age.value);
+    if (allocatedAmount.present) {
+      map['allocated_amount'] = Variable<double>(allocatedAmount.value);
     }
     return map;
   }
@@ -2275,7 +2243,7 @@ class ElderlyCompanion extends UpdateCompanion<ElderlyBeneficiary> {
   String toString() {
     return (StringBuffer('ElderlyCompanion(')
           ..write('beneficiaryId: $beneficiaryId, ')
-          ..write('age: $age')
+          ..write('allocatedAmount: $allocatedAmount')
           ..write(')'))
         .toString();
   }
@@ -2301,19 +2269,20 @@ class $MarriedTable extends Married
       'REFERENCES beneficiaries (id) ON DELETE CASCADE',
     ),
   );
-  static const VerificationMeta _marriageDateMeta = const VerificationMeta(
-    'marriageDate',
+  static const VerificationMeta _allocatedAmountMeta = const VerificationMeta(
+    'allocatedAmount',
   );
   @override
-  late final GeneratedColumn<DateTime> marriageDate = GeneratedColumn<DateTime>(
-    'marriage_date',
+  late final GeneratedColumn<double> allocatedAmount = GeneratedColumn<double>(
+    'allocated_amount',
     aliasedName,
     false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
   );
   @override
-  List<GeneratedColumn> get $columns => [beneficiaryId, marriageDate];
+  List<GeneratedColumn> get $columns => [beneficiaryId, allocatedAmount];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2335,16 +2304,14 @@ class $MarriedTable extends Married
         ),
       );
     }
-    if (data.containsKey('marriage_date')) {
+    if (data.containsKey('allocated_amount')) {
       context.handle(
-        _marriageDateMeta,
-        marriageDate.isAcceptableOrUnknown(
-          data['marriage_date']!,
-          _marriageDateMeta,
+        _allocatedAmountMeta,
+        allocatedAmount.isAcceptableOrUnknown(
+          data['allocated_amount']!,
+          _allocatedAmountMeta,
         ),
       );
-    } else if (isInserting) {
-      context.missing(_marriageDateMeta);
     }
     return context;
   }
@@ -2359,9 +2326,9 @@ class $MarriedTable extends Married
         DriftSqlType.int,
         data['${effectivePrefix}beneficiary_id'],
       )!,
-      marriageDate: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}marriage_date'],
+      allocatedAmount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}allocated_amount'],
       )!,
     );
   }
@@ -2375,23 +2342,23 @@ class $MarriedTable extends Married
 class MarriedBeneficiary extends DataClass
     implements Insertable<MarriedBeneficiary> {
   final int beneficiaryId;
-  final DateTime marriageDate;
+  final double allocatedAmount;
   const MarriedBeneficiary({
     required this.beneficiaryId,
-    required this.marriageDate,
+    required this.allocatedAmount,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['beneficiary_id'] = Variable<int>(beneficiaryId);
-    map['marriage_date'] = Variable<DateTime>(marriageDate);
+    map['allocated_amount'] = Variable<double>(allocatedAmount);
     return map;
   }
 
   MarriedCompanion toCompanion(bool nullToAbsent) {
     return MarriedCompanion(
       beneficiaryId: Value(beneficiaryId),
-      marriageDate: Value(marriageDate),
+      allocatedAmount: Value(allocatedAmount),
     );
   }
 
@@ -2402,7 +2369,7 @@ class MarriedBeneficiary extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MarriedBeneficiary(
       beneficiaryId: serializer.fromJson<int>(json['beneficiaryId']),
-      marriageDate: serializer.fromJson<DateTime>(json['marriageDate']),
+      allocatedAmount: serializer.fromJson<double>(json['allocatedAmount']),
     );
   }
   @override
@@ -2410,23 +2377,23 @@ class MarriedBeneficiary extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'beneficiaryId': serializer.toJson<int>(beneficiaryId),
-      'marriageDate': serializer.toJson<DateTime>(marriageDate),
+      'allocatedAmount': serializer.toJson<double>(allocatedAmount),
     };
   }
 
-  MarriedBeneficiary copyWith({int? beneficiaryId, DateTime? marriageDate}) =>
+  MarriedBeneficiary copyWith({int? beneficiaryId, double? allocatedAmount}) =>
       MarriedBeneficiary(
         beneficiaryId: beneficiaryId ?? this.beneficiaryId,
-        marriageDate: marriageDate ?? this.marriageDate,
+        allocatedAmount: allocatedAmount ?? this.allocatedAmount,
       );
   MarriedBeneficiary copyWithCompanion(MarriedCompanion data) {
     return MarriedBeneficiary(
       beneficiaryId: data.beneficiaryId.present
           ? data.beneficiaryId.value
           : this.beneficiaryId,
-      marriageDate: data.marriageDate.present
-          ? data.marriageDate.value
-          : this.marriageDate,
+      allocatedAmount: data.allocatedAmount.present
+          ? data.allocatedAmount.value
+          : this.allocatedAmount,
     );
   }
 
@@ -2434,49 +2401,49 @@ class MarriedBeneficiary extends DataClass
   String toString() {
     return (StringBuffer('MarriedBeneficiary(')
           ..write('beneficiaryId: $beneficiaryId, ')
-          ..write('marriageDate: $marriageDate')
+          ..write('allocatedAmount: $allocatedAmount')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(beneficiaryId, marriageDate);
+  int get hashCode => Object.hash(beneficiaryId, allocatedAmount);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MarriedBeneficiary &&
           other.beneficiaryId == this.beneficiaryId &&
-          other.marriageDate == this.marriageDate);
+          other.allocatedAmount == this.allocatedAmount);
 }
 
 class MarriedCompanion extends UpdateCompanion<MarriedBeneficiary> {
   final Value<int> beneficiaryId;
-  final Value<DateTime> marriageDate;
+  final Value<double> allocatedAmount;
   const MarriedCompanion({
     this.beneficiaryId = const Value.absent(),
-    this.marriageDate = const Value.absent(),
+    this.allocatedAmount = const Value.absent(),
   });
   MarriedCompanion.insert({
     this.beneficiaryId = const Value.absent(),
-    required DateTime marriageDate,
-  }) : marriageDate = Value(marriageDate);
+    this.allocatedAmount = const Value.absent(),
+  });
   static Insertable<MarriedBeneficiary> custom({
     Expression<int>? beneficiaryId,
-    Expression<DateTime>? marriageDate,
+    Expression<double>? allocatedAmount,
   }) {
     return RawValuesInsertable({
       if (beneficiaryId != null) 'beneficiary_id': beneficiaryId,
-      if (marriageDate != null) 'marriage_date': marriageDate,
+      if (allocatedAmount != null) 'allocated_amount': allocatedAmount,
     });
   }
 
   MarriedCompanion copyWith({
     Value<int>? beneficiaryId,
-    Value<DateTime>? marriageDate,
+    Value<double>? allocatedAmount,
   }) {
     return MarriedCompanion(
       beneficiaryId: beneficiaryId ?? this.beneficiaryId,
-      marriageDate: marriageDate ?? this.marriageDate,
+      allocatedAmount: allocatedAmount ?? this.allocatedAmount,
     );
   }
 
@@ -2486,8 +2453,8 @@ class MarriedCompanion extends UpdateCompanion<MarriedBeneficiary> {
     if (beneficiaryId.present) {
       map['beneficiary_id'] = Variable<int>(beneficiaryId.value);
     }
-    if (marriageDate.present) {
-      map['marriage_date'] = Variable<DateTime>(marriageDate.value);
+    if (allocatedAmount.present) {
+      map['allocated_amount'] = Variable<double>(allocatedAmount.value);
     }
     return map;
   }
@@ -2496,7 +2463,7 @@ class MarriedCompanion extends UpdateCompanion<MarriedBeneficiary> {
   String toString() {
     return (StringBuffer('MarriedCompanion(')
           ..write('beneficiaryId: $beneficiaryId, ')
-          ..write('marriageDate: $marriageDate')
+          ..write('allocatedAmount: $allocatedAmount')
           ..write(')'))
         .toString();
   }
@@ -2552,9 +2519,9 @@ class $CampaignsTable extends Campaigns
   late final GeneratedColumn<int> aidTypeId = GeneratedColumn<int>(
     'aid_type_id',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.int,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'REFERENCES aid_types (id)',
     ),
@@ -2640,8 +2607,6 @@ class $CampaignsTable extends Campaigns
         _aidTypeIdMeta,
         aidTypeId.isAcceptableOrUnknown(data['aid_type_id']!, _aidTypeIdMeta),
       );
-    } else if (isInserting) {
-      context.missing(_aidTypeIdMeta);
     }
     if (data.containsKey('amount_per_beneficiary')) {
       context.handle(
@@ -2688,7 +2653,7 @@ class $CampaignsTable extends Campaigns
       aidTypeId: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}aid_type_id'],
-      )!,
+      ),
       amountPerBeneficiary: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}amount_per_beneficiary'],
@@ -2714,7 +2679,7 @@ class Campaign extends DataClass implements Insertable<Campaign> {
   final int id;
   final String name;
   final String beneficiaryType;
-  final int aidTypeId;
+  final int? aidTypeId;
   final double? amountPerBeneficiary;
   final String? notes;
   final DateTime createdAt;
@@ -2722,7 +2687,7 @@ class Campaign extends DataClass implements Insertable<Campaign> {
     required this.id,
     required this.name,
     required this.beneficiaryType,
-    required this.aidTypeId,
+    this.aidTypeId,
     this.amountPerBeneficiary,
     this.notes,
     required this.createdAt,
@@ -2733,7 +2698,9 @@ class Campaign extends DataClass implements Insertable<Campaign> {
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['beneficiary_type'] = Variable<String>(beneficiaryType);
-    map['aid_type_id'] = Variable<int>(aidTypeId);
+    if (!nullToAbsent || aidTypeId != null) {
+      map['aid_type_id'] = Variable<int>(aidTypeId);
+    }
     if (!nullToAbsent || amountPerBeneficiary != null) {
       map['amount_per_beneficiary'] = Variable<double>(amountPerBeneficiary);
     }
@@ -2749,7 +2716,9 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       id: Value(id),
       name: Value(name),
       beneficiaryType: Value(beneficiaryType),
-      aidTypeId: Value(aidTypeId),
+      aidTypeId: aidTypeId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(aidTypeId),
       amountPerBeneficiary: amountPerBeneficiary == null && nullToAbsent
           ? const Value.absent()
           : Value(amountPerBeneficiary),
@@ -2769,7 +2738,7 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       beneficiaryType: serializer.fromJson<String>(json['beneficiaryType']),
-      aidTypeId: serializer.fromJson<int>(json['aidTypeId']),
+      aidTypeId: serializer.fromJson<int?>(json['aidTypeId']),
       amountPerBeneficiary: serializer.fromJson<double?>(
         json['amountPerBeneficiary'],
       ),
@@ -2784,7 +2753,7 @@ class Campaign extends DataClass implements Insertable<Campaign> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'beneficiaryType': serializer.toJson<String>(beneficiaryType),
-      'aidTypeId': serializer.toJson<int>(aidTypeId),
+      'aidTypeId': serializer.toJson<int?>(aidTypeId),
       'amountPerBeneficiary': serializer.toJson<double?>(amountPerBeneficiary),
       'notes': serializer.toJson<String?>(notes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -2795,7 +2764,7 @@ class Campaign extends DataClass implements Insertable<Campaign> {
     int? id,
     String? name,
     String? beneficiaryType,
-    int? aidTypeId,
+    Value<int?> aidTypeId = const Value.absent(),
     Value<double?> amountPerBeneficiary = const Value.absent(),
     Value<String?> notes = const Value.absent(),
     DateTime? createdAt,
@@ -2803,7 +2772,7 @@ class Campaign extends DataClass implements Insertable<Campaign> {
     id: id ?? this.id,
     name: name ?? this.name,
     beneficiaryType: beneficiaryType ?? this.beneficiaryType,
-    aidTypeId: aidTypeId ?? this.aidTypeId,
+    aidTypeId: aidTypeId.present ? aidTypeId.value : this.aidTypeId,
     amountPerBeneficiary: amountPerBeneficiary.present
         ? amountPerBeneficiary.value
         : this.amountPerBeneficiary,
@@ -2867,7 +2836,7 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> beneficiaryType;
-  final Value<int> aidTypeId;
+  final Value<int?> aidTypeId;
   final Value<double?> amountPerBeneficiary;
   final Value<String?> notes;
   final Value<DateTime> createdAt;
@@ -2884,13 +2853,12 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
     this.id = const Value.absent(),
     required String name,
     required String beneficiaryType,
-    required int aidTypeId,
+    this.aidTypeId = const Value.absent(),
     this.amountPerBeneficiary = const Value.absent(),
     this.notes = const Value.absent(),
     this.createdAt = const Value.absent(),
   }) : name = Value(name),
-       beneficiaryType = Value(beneficiaryType),
-       aidTypeId = Value(aidTypeId);
+       beneficiaryType = Value(beneficiaryType);
   static Insertable<Campaign> custom({
     Expression<int>? id,
     Expression<String>? name,
@@ -2916,7 +2884,7 @@ class CampaignsCompanion extends UpdateCompanion<Campaign> {
     Value<int>? id,
     Value<String>? name,
     Value<String>? beneficiaryType,
-    Value<int>? aidTypeId,
+    Value<int?>? aidTypeId,
     Value<double?>? amountPerBeneficiary,
     Value<String?>? notes,
     Value<DateTime>? createdAt,
@@ -6297,16 +6265,14 @@ typedef $$HouseholdsTableProcessedTableManager =
 typedef $$StudentsTableCreateCompanionBuilder =
     StudentsCompanion Function({
       Value<int> beneficiaryId,
-      required String schoolName,
-      required String educationStage,
-      required String classGrade,
+      Value<String?> universityName,
+      Value<double> allocatedAmount,
     });
 typedef $$StudentsTableUpdateCompanionBuilder =
     StudentsCompanion Function({
       Value<int> beneficiaryId,
-      Value<String> schoolName,
-      Value<String> educationStage,
-      Value<String> classGrade,
+      Value<String?> universityName,
+      Value<double> allocatedAmount,
     });
 
 final class $$StudentsTableReferences
@@ -6341,18 +6307,13 @@ class $$StudentsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get schoolName => $composableBuilder(
-    column: $table.schoolName,
+  ColumnFilters<String> get universityName => $composableBuilder(
+    column: $table.universityName,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get educationStage => $composableBuilder(
-    column: $table.educationStage,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get classGrade => $composableBuilder(
-    column: $table.classGrade,
+  ColumnFilters<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6389,18 +6350,13 @@ class $$StudentsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get schoolName => $composableBuilder(
-    column: $table.schoolName,
+  ColumnOrderings<String> get universityName => $composableBuilder(
+    column: $table.universityName,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get educationStage => $composableBuilder(
-    column: $table.educationStage,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get classGrade => $composableBuilder(
-    column: $table.classGrade,
+  ColumnOrderings<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6437,18 +6393,13 @@ class $$StudentsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get schoolName => $composableBuilder(
-    column: $table.schoolName,
+  GeneratedColumn<String> get universityName => $composableBuilder(
+    column: $table.universityName,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get educationStage => $composableBuilder(
-    column: $table.educationStage,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get classGrade => $composableBuilder(
-    column: $table.classGrade,
+  GeneratedColumn<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => column,
   );
 
@@ -6505,26 +6456,22 @@ class $$StudentsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> beneficiaryId = const Value.absent(),
-                Value<String> schoolName = const Value.absent(),
-                Value<String> educationStage = const Value.absent(),
-                Value<String> classGrade = const Value.absent(),
+                Value<String?> universityName = const Value.absent(),
+                Value<double> allocatedAmount = const Value.absent(),
               }) => StudentsCompanion(
                 beneficiaryId: beneficiaryId,
-                schoolName: schoolName,
-                educationStage: educationStage,
-                classGrade: classGrade,
+                universityName: universityName,
+                allocatedAmount: allocatedAmount,
               ),
           createCompanionCallback:
               ({
                 Value<int> beneficiaryId = const Value.absent(),
-                required String schoolName,
-                required String educationStage,
-                required String classGrade,
+                Value<String?> universityName = const Value.absent(),
+                Value<double> allocatedAmount = const Value.absent(),
               }) => StudentsCompanion.insert(
                 beneficiaryId: beneficiaryId,
-                schoolName: schoolName,
-                educationStage: educationStage,
-                classGrade: classGrade,
+                universityName: universityName,
+                allocatedAmount: allocatedAmount,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6594,9 +6541,15 @@ typedef $$StudentsTableProcessedTableManager =
       PrefetchHooks Function({bool beneficiaryId})
     >;
 typedef $$ElderlyTableCreateCompanionBuilder =
-    ElderlyCompanion Function({Value<int> beneficiaryId, required int age});
+    ElderlyCompanion Function({
+      Value<int> beneficiaryId,
+      Value<double> allocatedAmount,
+    });
 typedef $$ElderlyTableUpdateCompanionBuilder =
-    ElderlyCompanion Function({Value<int> beneficiaryId, Value<int> age});
+    ElderlyCompanion Function({
+      Value<int> beneficiaryId,
+      Value<double> allocatedAmount,
+    });
 
 final class $$ElderlyTableReferences
     extends BaseReferences<_$AppDatabase, $ElderlyTable, ElderlyBeneficiary> {
@@ -6630,8 +6583,8 @@ class $$ElderlyTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnFilters<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6668,8 +6621,8 @@ class $$ElderlyTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get age => $composableBuilder(
-    column: $table.age,
+  ColumnOrderings<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6706,8 +6659,10 @@ class $$ElderlyTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<int> get age =>
-      $composableBuilder(column: $table.age, builder: (column) => column);
+  GeneratedColumn<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
+    builder: (column) => column,
+  );
 
   $$BeneficiariesTableAnnotationComposer get beneficiaryId {
     final $$BeneficiariesTableAnnotationComposer composer = $composerBuilder(
@@ -6762,15 +6717,18 @@ class $$ElderlyTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> beneficiaryId = const Value.absent(),
-                Value<int> age = const Value.absent(),
-              }) => ElderlyCompanion(beneficiaryId: beneficiaryId, age: age),
+                Value<double> allocatedAmount = const Value.absent(),
+              }) => ElderlyCompanion(
+                beneficiaryId: beneficiaryId,
+                allocatedAmount: allocatedAmount,
+              ),
           createCompanionCallback:
               ({
                 Value<int> beneficiaryId = const Value.absent(),
-                required int age,
+                Value<double> allocatedAmount = const Value.absent(),
               }) => ElderlyCompanion.insert(
                 beneficiaryId: beneficiaryId,
-                age: age,
+                allocatedAmount: allocatedAmount,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -6842,12 +6800,12 @@ typedef $$ElderlyTableProcessedTableManager =
 typedef $$MarriedTableCreateCompanionBuilder =
     MarriedCompanion Function({
       Value<int> beneficiaryId,
-      required DateTime marriageDate,
+      Value<double> allocatedAmount,
     });
 typedef $$MarriedTableUpdateCompanionBuilder =
     MarriedCompanion Function({
       Value<int> beneficiaryId,
-      Value<DateTime> marriageDate,
+      Value<double> allocatedAmount,
     });
 
 final class $$MarriedTableReferences
@@ -6882,8 +6840,8 @@ class $$MarriedTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<DateTime> get marriageDate => $composableBuilder(
-    column: $table.marriageDate,
+  ColumnFilters<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6920,8 +6878,8 @@ class $$MarriedTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<DateTime> get marriageDate => $composableBuilder(
-    column: $table.marriageDate,
+  ColumnOrderings<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -6958,8 +6916,8 @@ class $$MarriedTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<DateTime> get marriageDate => $composableBuilder(
-    column: $table.marriageDate,
+  GeneratedColumn<double> get allocatedAmount => $composableBuilder(
+    column: $table.allocatedAmount,
     builder: (column) => column,
   );
 
@@ -7016,18 +6974,18 @@ class $$MarriedTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> beneficiaryId = const Value.absent(),
-                Value<DateTime> marriageDate = const Value.absent(),
+                Value<double> allocatedAmount = const Value.absent(),
               }) => MarriedCompanion(
                 beneficiaryId: beneficiaryId,
-                marriageDate: marriageDate,
+                allocatedAmount: allocatedAmount,
               ),
           createCompanionCallback:
               ({
                 Value<int> beneficiaryId = const Value.absent(),
-                required DateTime marriageDate,
+                Value<double> allocatedAmount = const Value.absent(),
               }) => MarriedCompanion.insert(
                 beneficiaryId: beneficiaryId,
-                marriageDate: marriageDate,
+                allocatedAmount: allocatedAmount,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -7101,7 +7059,7 @@ typedef $$CampaignsTableCreateCompanionBuilder =
       Value<int> id,
       required String name,
       required String beneficiaryType,
-      required int aidTypeId,
+      Value<int?> aidTypeId,
       Value<double?> amountPerBeneficiary,
       Value<String?> notes,
       Value<DateTime> createdAt,
@@ -7111,7 +7069,7 @@ typedef $$CampaignsTableUpdateCompanionBuilder =
       Value<int> id,
       Value<String> name,
       Value<String> beneficiaryType,
-      Value<int> aidTypeId,
+      Value<int?> aidTypeId,
       Value<double?> amountPerBeneficiary,
       Value<String?> notes,
       Value<DateTime> createdAt,
@@ -7124,9 +7082,9 @@ final class $$CampaignsTableReferences
   static $AidTypesTable _aidTypeIdTable(_$AppDatabase db) =>
       db.aidTypes.createAlias('campaigns__aid_type_id__aid_types__id');
 
-  $$AidTypesTableProcessedTableManager get aidTypeId {
-    final $_column = $_itemColumn<int>('aid_type_id')!;
-
+  $$AidTypesTableProcessedTableManager? get aidTypeId {
+    final $_column = $_itemColumn<int>('aid_type_id');
+    if ($_column == null) return null;
     final manager = $$AidTypesTableTableManager(
       $_db,
       $_db.aidTypes,
@@ -7581,7 +7539,7 @@ class $$CampaignsTableTableManager
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> beneficiaryType = const Value.absent(),
-                Value<int> aidTypeId = const Value.absent(),
+                Value<int?> aidTypeId = const Value.absent(),
                 Value<double?> amountPerBeneficiary = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -7599,7 +7557,7 @@ class $$CampaignsTableTableManager
                 Value<int> id = const Value.absent(),
                 required String name,
                 required String beneficiaryType,
-                required int aidTypeId,
+                Value<int?> aidTypeId = const Value.absent(),
                 Value<double?> amountPerBeneficiary = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
